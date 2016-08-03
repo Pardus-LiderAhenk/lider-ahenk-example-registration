@@ -19,6 +19,7 @@
 		<property name="configurationService" ref="configurationService" />
 		<property name="agentDao" ref="agentDao" />
 		<property name="entityFactory" ref="entityFactory" />
+		<property name="messageFactory" ref="messageFactory" />
 	</bean>
 	
 	<reference id="ldapService"
@@ -29,5 +30,7 @@
 		interface="tr.org.liderahenk.lider.core.api.persistence.dao.IAgentDao" />
 	<reference id="entityFactory"
 		interface="tr.org.liderahenk.lider.core.api.persistence.factories.IEntityFactory" />
+	<reference id="messageFactory"
+		interface="tr.org.liderahenk.lider.core.api.messaging.IMessageFactory" />
 		
 </blueprint>
