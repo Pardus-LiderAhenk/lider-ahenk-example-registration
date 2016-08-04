@@ -51,21 +51,24 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		
 		
 		if (AgentMessageType.REGISTER == message.getType()) {
+			
+			logger.info("Example Registration triggered");
 
 			boolean alreadyExists = false;
 			Entry definedEntry=getEnryFromCsvFile(message.getMacAddresses(),inputStream);
 
 			if (definedEntry != null){//example registration
-				
+				logger.info("Mac address is defined in csv file");
 				String dn = null;
 				
-				//is registered in ldap?
+				//Is Agent registered in ldap?
 				final List<LdapEntry> entries = ldapService.search("cn", definedEntry.ouParameters[0],new String[] { "cn" });
 				LdapEntry entry = entries != null && !entries.isEmpty() ? entries.get(0) : null;
 				
 				
-				//already registered
+				//Agent already registered
 				if (entry != null){
+					logger.info("This agent already registered in LDAP");
 					alreadyExists = true;
 					dn = entry.getDistinguishedName();
 					logger.info("Updating LDAP entry: {} with password: {}",new Object[] { message.getFrom(), message.getPassword() });
@@ -74,9 +77,9 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 					logger.info("Agent LDAP entry {} updated successfully!", dn);
 				}
 				
-				//not registered yet
+				//Agent noot registered yet
 				else{
-					
+					logger.info("Starting ldap registration...");
 					//create dn and check is ou level created. if does not exist, create!
 					dn = createEntryDN(definedEntry.cn,definedEntry.ouParameters);
 					ldapService.addEntry(dn, computeAttributes(definedEntry.cn, message.getPassword(),definedEntry.ouParameters));
@@ -84,16 +87,18 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				
 
 				// Try to find related agent database record
-				List<? extends IAgent> agents = agentDao.findByProperty(IAgent.class, "jid", definedEntry.ouParameters[0], 1);
+				List<? extends IAgent> agents = agentDao.findByProperty(IAgent.class, "jid", message.getFrom().split("@")[0], 1);
 				IAgent agent = agents != null && !agents.isEmpty() ? agents.get(0) : null;
 
 				if (agent != null) {
+					logger.debug("Agent already exists in database.If there is a changed property, it will be updated.");
 					alreadyExists = true;
 					// Update the record
 					agent = entityFactory.createAgent(agent, message.getPassword(), message.getHostname(),message.getIpAddresses(), message.getMacAddresses(), message.getData());
 					agentDao.update(agent);
 				} else {
 					// Create new agent database record
+					logger.debug("Creating new agent record in database.");
 					agent = entityFactory.createAgent(null, definedEntry.ouParameters[0], dn, message.getPassword(), message.getHostname(),message.getIpAddresses(), message.getMacAddresses(), message.getData());
 					agentDao.save(agent);
 				}
@@ -106,45 +111,18 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 					return messageFactory.createRegistrationResponseMessage(null, StatusCode.REGISTERED, dn + " and its related database record created successfully!", dn);
 				}
 				
-				
 			}
-			else{//default registration
-				//TODO
-				
+			else{
+					throw new Exception();
 			}
-			
-			// TODO
-			// TODO
-			// TODO
-			logger.info("Registration triggered");
 
 		} else if (AgentMessageType.UNREGISTER == message.getType()) {
-			//TODO
-//			// Check if agent LDAP entry already exists
-//			final List<LdapEntry> entry = ldapService.search(configurationService.getAgentLdapJidAttribute(), jid,
-//					new String[] { configurationService.getAgentLdapJidAttribute() });
-//
-//			// Delete agent LDAP entry
-//			if (entry != null && !entry.isEmpty()) {
-//				ldapService.deleteEntry(entry.get(0).getDistinguishedName());
-//			}
-//
-//			// Find related agent database record.
-//			List<? extends IAgent> agents = agentDao.findByProperty(IAgent.class, "jid", jid, 1);
-//			IAgent agent = agents != null && !agents.isEmpty() ? agents.get(0) : null;
-//
-//			// Mark the record as deleted.
-//			if (agent != null) {
-//				agentDao.delete(agent.getId());
-//			}
-
-			return null;
+			throw new Exception();
 		}
 
-		return null;
+		throw new Exception();
 	}
 
-	
 	
 	public ILiderMessage postRegistration() throws Exception {
 		String command="cat /etc/system.properties";
@@ -159,8 +137,13 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 
 		logger.info("Execute script message result handling.");
 		
-		if(message.getResultCode()!=null && message.getResultCode()>0){
-			logger.error("Script execution failed. Result code: {}",message.getResultCode());
+		if(message.getResultCode()!=null){
+			if(message.getResultCode()>0){
+				logger.error("Script execution failed. Result code: {}. Eror Message: {}",message.getResultCode(),message.getErrorMessage());
+			}
+			else if (message.getResultCode()==-1){
+				logger.error("Script couldn not executed properly. Check your command or be sure agent can run this command.");
+			}
 		}
 		else{
 			logger.info("Script executed successfully.");
@@ -219,10 +202,13 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 
 		final List<LdapEntry> enryList = ldapService.search("ou", ouValue,new String[] { "ou" });
 		
+		logger.info("Checking for  {} entry does exists",ouValue);
 		if (enryList !=null && enryList.size()>0){
+			logger.debug("Entry: {} already exists",ouValue);
 			return true;
 		}
 		else{
+			logger.debug("{} not found",ouValue);
 			return false;
 		}
 	}
@@ -235,6 +221,7 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		attributes.put("cn", new String[] { cn });
 		attributes.put("uid", new String[] { fullJid.split("@")[0] });
 		attributes.put("userPassword", new String[] { password });
+		//TODO fixing about LDAP
 		attributes.put("owner", new String[] { "ou=Uncategorized,dc=mys,dc=pardus,dc=org" });
 		return attributes;
 	}
@@ -242,14 +229,11 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 	private String createEntryDN(String cn, String[] ouParameters) throws LdapException {
 		String incrementaldn=rootDc;
 		
-		logger.error("incrementaldn"+incrementaldn);
-		
 		for (String ouValue : ouParameters) {
 			incrementaldn="ou="+ouValue+","+incrementaldn;
-			logger.error("incrementaldn"+incrementaldn);
 			
 			if(organizationUnitDoesExist(ouValue)==false){
-				logger.error(ouValue+" yok ekleyecez");
+				logger.info(" {} entry adding to ldap hiyerarchy",ouValue);
 				Map<String, String[]> ouMap= new HashMap<String, String[]>();
 				ouMap.put("objectClass", new String[]{"top","organizationalUnit"});
 				ouMap.put("ou", new String[]{ouValue});
@@ -273,6 +257,8 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 	}
 	
 	public Entry getEnryFromCsvFile(String strMacAddresses,InputStream inputStream){
+		
+		logger.info("Reading csv file...");
 		
 		CsvReader csvReader=new CsvReader();
 		Map<String, String[]> expectedRecordsMap=csvReader.read(inputStream);
