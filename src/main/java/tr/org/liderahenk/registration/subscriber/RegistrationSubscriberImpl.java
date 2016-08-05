@@ -58,8 +58,9 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				String dn = null;
 
 				// Is Agent registered in ldap?
-				final List<LdapEntry> entries = ldapService.search("uid", message.getFrom().split("@")[0],
-						new String[] { "cn", "uid" });
+				final List<LdapEntry> entries = ldapService.search(configurationService.getAgentLdapJidAttribute(),
+						message.getFrom().split("@")[0],
+						new String[] { configurationService.getAgentLdapJidAttribute() });
 				LdapEntry entry = entries != null && !entries.isEmpty() ? entries.get(0) : null;
 
 				// Agent already registered
