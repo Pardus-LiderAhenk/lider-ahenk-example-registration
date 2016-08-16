@@ -101,7 +101,7 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				} else {
 					// Create new agent database record
 					logger.debug("Creating new agent record in database.");
-					agent = entityFactory.createAgent(null, definedEntry.ouParameters[0], dn, message.getPassword(),
+					agent = entityFactory.createAgent(null, message.getFrom().split("@")[0], dn, message.getPassword(),
 							message.getHostname(), message.getIpAddresses(), message.getMacAddresses(),
 							message.getData());
 					agentDao.save(agent);
