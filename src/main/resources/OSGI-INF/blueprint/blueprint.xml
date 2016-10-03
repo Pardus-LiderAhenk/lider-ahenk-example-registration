@@ -7,6 +7,14 @@
                  http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://svn.apache.org/repos/asf/aries/trunk/blueprint/blueprint-cm/src/main/resources/org/apache/aries/blueprint/compendium/cm/blueprint-cm-1.1.0.xsd
          ">
 
+	<cm:property-placeholder persistent-id="tr.org.liderahenk.example.registration"
+		update-strategy="reload">
+		<cm:default-properties>
+			<cm:property name="file.protocol" value="inner" />
+			<cm:property name="file.path" value="records.csv" />
+		</cm:default-properties>
+	</cm:property-placeholder>
+
 	<service ref="RegistrationSubscriberImpl">
 		<interfaces>
 			<value>tr.org.liderahenk.lider.core.api.messaging.subscribers.IRegistrationSubscriber</value>
@@ -20,6 +28,12 @@
 		<property name="agentDao" ref="agentDao" />
 		<property name="entityFactory" ref="entityFactory" />
 		<property name="messageFactory" ref="messageFactory" />
+	</bean>
+	
+	<bean id="registrationConfig" class="tr.org.liderahenk.registration.config.RegistrationConfig"
+		init-method="refresh">
+		<property name="fileProtocol" value="${file.protocol}" />
+		<property name="filePath" value="${file.path}" />
 	</bean>
 	
 	<reference id="ldapService"
