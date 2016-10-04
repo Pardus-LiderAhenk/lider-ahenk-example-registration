@@ -11,7 +11,7 @@
 		update-strategy="reload">
 		<cm:default-properties>
 			<cm:property name="file.protocol" value="inner" />
-			<cm:property name="file.path" value="records.csv" />
+			<cm:property name="file.path" value="/records.csv" />
 		</cm:default-properties>
 	</cm:property-placeholder>
 
@@ -28,6 +28,7 @@
 		<property name="agentDao" ref="agentDao" />
 		<property name="entityFactory" ref="entityFactory" />
 		<property name="messageFactory" ref="messageFactory" />
+		<property name="registrationConfig" ref="registrationConfig" />
 	</bean>
 	
 	<bean id="registrationConfig" class="tr.org.liderahenk.registration.config.RegistrationConfig"
