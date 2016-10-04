@@ -1,6 +1,5 @@
 package tr.org.liderahenk.registration.subscriber;
 
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +25,7 @@ import tr.org.liderahenk.lider.core.api.persistence.dao.IAgentDao;
 import tr.org.liderahenk.lider.core.api.persistence.entities.IAgent;
 import tr.org.liderahenk.lider.core.api.persistence.factories.IEntityFactory;
 import tr.org.liderahenk.lider.core.api.utils.FileCopyUtils;
+import tr.org.liderahenk.registration.config.RegistrationConfig;
 
 public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScriptResultSubscriber {
 
@@ -36,13 +36,11 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 	private IAgentDao agentDao;
 	private IEntityFactory entityFactory;
 	private IMessageFactory messageFactory;
+	private RegistrationConfig registrationConfig;
 
 	public String fullJid;
 
 	public ILiderMessage messageReceived(IRegistrationMessage message) throws Exception {
-
-		InputStream inputStream = null;
-		inputStream = getClass().getResourceAsStream("/records.csv");
 
 		fullJid = message.getFrom();
 
@@ -51,7 +49,10 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 			logger.info("Example Registration triggered");
 
 			boolean alreadyExists = false;
-			Entry definedEntry = getEnryFromCsvFile(message.getMacAddresses(), inputStream);
+			Entry definedEntry = null;
+			logger.info("mac:" + message.getMacAddresses());
+			definedEntry = getEnryFromCsvFile(message.getMacAddresses(), registrationConfig.getFileProtocol(),
+					registrationConfig.getFilePath());
 
 			if (definedEntry != null) {// example registration
 				logger.info("Mac address is defined in csv file");
@@ -75,7 +76,7 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 					logger.info("Agent LDAP entry {} updated successfully!", dn);
 				}
 
-				// Agent noot registered yet
+				// Agent not registered yet
 				else {
 					logger.info("Starting ldap registration...");
 					// create dn and check is ou level created. if does not
@@ -121,6 +122,7 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				}
 
 			} else {
+				logger.info("Mac address not found :(");
 				throw new Exception();
 			}
 
@@ -129,6 +131,10 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		}
 
 		throw new Exception();
+	}
+
+	public void setRegistrationConfig(RegistrationConfig registrationConfig) {
+		this.registrationConfig = registrationConfig;
 	}
 
 	public ILiderMessage postRegistration() throws Exception {
@@ -206,16 +212,15 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 
 	}
 
-	private boolean organizationUnitDoesExist(String ouValue) throws LdapException {
+	private boolean organizationUnitDoesExist(String dn) throws LdapException {
 
-		final List<LdapEntry> enryList = ldapService.search("ou", ouValue, new String[] { "ou" });
+		logger.info("Checking for  dn->{} entry does exists", dn);
 
-		logger.info("Checking for  {} entry does exists", ouValue);
-		if (enryList != null && enryList.size() > 0) {
-			logger.debug("Entry: {} already exists", ouValue);
+		if (ldapService.getEntry(dn, new String[] {}) != null) {
+			logger.debug("Entry: {} already exists", dn);
 			return true;
 		} else {
-			logger.debug("{} not found", ouValue);
+			logger.debug("{} not found", dn);
 			return false;
 		}
 	}
@@ -238,8 +243,8 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		for (String ouValue : ouParameters) {
 			incrementaldn = "ou=" + ouValue + "," + incrementaldn;
 
-			if (organizationUnitDoesExist(ouValue) == false) {
-				logger.info(" {} entry adding to ldap hiyerarchy", ouValue);
+			if (organizationUnitDoesExist(incrementaldn) == false) {
+				logger.info(" {} entry adding to ldap hierarchy", ouValue);
 				Map<String, String[]> ouMap = new HashMap<String, String[]>();
 				ouMap.put("objectClass", new String[] { "top", "organizationalUnit" });
 				ouMap.put("ou", new String[] { ouValue });
@@ -261,17 +266,16 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		}
 	}
 
-	public Entry getEnryFromCsvFile(String strMacAddresses, InputStream inputStream) {
+	public Entry getEnryFromCsvFile(String strMacAddresses, String protocol, String path) throws Exception {
 
-		logger.info("Reading csv file...");
+		logger.info(
+				"Reading csv file according to parameters of configuration protocol:" + protocol + ", path:" + path);
 
 		CsvReader csvReader = new CsvReader();
-		Map<String, String[]> expectedRecordsMap = csvReader.read(inputStream);
-
+		Map<String, String[]> expectedRecordsMap = csvReader.read(protocol, path);
 		String[] macAddresses = strMacAddresses.split(",");
 		String[] ouParameters = null;
 		String cn = null;
-
 		if (macAddresses.length > 0) {
 			for (String macAddress : macAddresses) {
 				ouParameters = expectedRecordsMap.get(macAddress.replace("'", ""));
@@ -281,7 +285,6 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				}
 			}
 		}
-
 		if (ouParameters == null || cn == null) {
 			return null;
 		}
