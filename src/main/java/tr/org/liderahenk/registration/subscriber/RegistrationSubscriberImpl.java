@@ -276,8 +276,10 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		String[] macAddresses = strMacAddresses.split(",");
 		String[] ouParameters = null;
 		String cn = null;
+		
 		if (macAddresses.length > 0) {
 			for (String macAddress : macAddresses) {
+				macAddress = macAddress.trim();
 				ouParameters = expectedRecordsMap.get(macAddress.replace("'", ""));
 				if (ouParameters != null && ouParameters.length > 1) {
 					cn = ouParameters[0];
