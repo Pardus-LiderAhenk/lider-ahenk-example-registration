@@ -233,7 +233,7 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		attributes.put("uid", new String[] { fullJid.split("@")[0] });
 		attributes.put("userPassword", new String[] { password });
 		// TODO fixing about LDAP
-		attributes.put("owner", new String[] { "ou=Uncategorized,dc=mys,dc=pardus,dc=org" });
+		attributes.put("owner", new String[] { "ou=Ahenkler,dc=liderahenk,dc=org" });
 		return attributes;
 	}
 
@@ -248,6 +248,7 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				Map<String, String[]> ouMap = new HashMap<String, String[]>();
 				ouMap.put("objectClass", new String[] { "top", "organizationalUnit" });
 				ouMap.put("ou", new String[] { ouValue });
+				ouMap.put("description", new String[] { "pardusDeviceGroup"});
 				ldapService.addEntry(incrementaldn, ouMap);
 			}
 		}
