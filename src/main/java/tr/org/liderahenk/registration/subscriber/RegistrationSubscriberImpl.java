@@ -50,8 +50,11 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 
 			boolean alreadyExists = false;
 			Entry definedEntry = null;
-			logger.info("mac:" + message.getMacAddresses());
-			definedEntry = getEnryFromCsvFile(message.getMacAddresses(), registrationConfig.getFileProtocol(),
+//			logger.info("mac:" + message.getMacAddresses());
+//			definedEntry = getEnryFromCsvFile(message.getMacAddresses(), registrationConfig.getFileProtocol(),
+//					registrationConfig.getFilePath());
+			logger.info("hostname: " + message.getHostname());
+			definedEntry = getEnryFromCsvFile(message.getHostname(), registrationConfig.getFileProtocol(),
 					registrationConfig.getFilePath());
 
 			if (definedEntry != null) {// example registration
@@ -228,12 +231,14 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 	private Map<String, String[]> computeAttributes(final String cn, final String password, String[] dcParameters) {
 
 		Map<String, String[]> attributes = new HashMap<String, String[]>();
+		// attributes.put("objectClass", new String[] { "device", "pardusDevice", "orgNo" });
 		attributes.put("objectClass", new String[] { "device", "pardusDevice" });
 		attributes.put("cn", new String[] { cn });
 		attributes.put("uid", new String[] { fullJid.split("@")[0] });
 		attributes.put("userPassword", new String[] { password });
 		// TODO fixing about LDAP
 		attributes.put("owner", new String[] { "ou=Ahenkler,dc=liderahenk,dc=org" });
+		// attributes.put("sunucuNo", new String[] { "9999"});
 		return attributes;
 	}
 
@@ -267,21 +272,22 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 		}
 	}
 
-	public Entry getEnryFromCsvFile(String strMacAddresses, String protocol, String path) throws Exception {
-
+//	public Entry getEnryFromCsvFile(String strMacAddresses, String protocol, String path) throws Exception {
+//		logger.info(
+//				"Reading csv file according to parameters of configuration protocol:" + protocol + ", path:" + path);
+	public Entry getEnryFromCsvFile(String strhostname, String protocol, String path) throws Exception {
 		logger.info(
 				"Reading csv file according to parameters of configuration protocol:" + protocol + ", path:" + path);
-
 		CsvReader csvReader = new CsvReader();
 		Map<String, String[]> expectedRecordsMap = csvReader.read(protocol, path);
-		String[] macAddresses = strMacAddresses.split(",");
+		String[] hostname = strhostname.split(",");
 		String[] ouParameters = null;
 		String cn = null;
 		
-		if (macAddresses.length > 0) {
-			for (String macAddress : macAddresses) {
-				macAddress = macAddress.trim();
-				ouParameters = expectedRecordsMap.get(macAddress.replace("'", ""));
+		if (hostname.length > 0) {
+			for (String hostname1 : hostname) {
+				hostname1 = hostname1.trim();
+				ouParameters = expectedRecordsMap.get(hostname1.replace("'", ""));
 				if (ouParameters != null && ouParameters.length > 1) {
 					cn = ouParameters[0];
 					break;
