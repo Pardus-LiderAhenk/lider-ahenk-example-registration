@@ -15,22 +15,22 @@ Just run `mvn clean install -DskipTests`
 3. Finally, restart XMPP Client bundle via `bundle:restart <BUNDLE_ID>`.
 
 ## How to Use
-Example Registration bundle implemented for Ahenk registration according to mac address with specific ou values. Thus entries of registered Ahenk are more meaningful listed in ldap tree.
+Example Registration bundle implemented for Ahenk registration according to hostname with specific ou values. Thus entries of registered Ahenk are more meaningful listed in ldap tree.
 
 1- Be sure about there is a configuration file, which name is tr.org.liderahenk.example.registration.cfg, under Lider etc file.</br></br>
-2- tr.org.liderahenk.example.registration.cfg has two attributes; 
+2- tr.org.liderahenk.example.registration.cfg has two attributes;
 **file.protocol**: Possible values are http(read remote csv file via http), local(read csv file which is on Lider machine), inner(read csv file which is embedded in bundle)
 **file.path** : If protocol was defined as http, path value must be valid url. If protocol is local, path value must be folder path whic contains csv files. ( This folder can be host inner folders. Bundle looks folders recursively)</br></br>
 3-Example csv file:</br>
 `
-<mac_address>,<cn>,<ou>,<ou>,<ou>,<ou>,...
-08:00:27:f0:13:13,Ahenk_1,Ankara,Cankaya,Bilkent,Cyberpark,Floor_4
-08:00:27:f0:15:15,Ahenk_2,Ankara,Cankaya,Bilkent,Cyberpark,Floor_5
-08:00:27:f0:15:15,Ahenk_3,Ankara,Cankaya,Bilkent,Tepe,Level_2
-08:00:27:f0:14:14,Ahenk_4,Ankara,Cankaya,Hacettepe,CS,Floor_1
+<hostname>,<cn>,<ou>,<ou>,<ou>,<ou>,...
+hostname-1,ahenk-1,Ankara,Tübitak,Ulakbim,liderahenk
+hostname-2,ahenk-2,Ankara,Tübitak,Ulakbim,liderahenk
+hostname-3,ahenk-3,Ankara,Tübitak,Ulakbim,liderahenk
+hostname-4,ahenk-4,Ankara,Tübitak,Ulakbim,liderahenk
 `
 </br></br>
-Be careful about cn values must be uniqe and ou values are ordered 
+Be careful about cn and hostname values must be uniqe and ou values are ordered
 You don't have to create file with csv extension but file must has this format
 </br></br>
 There will be ldap tree after registration according to example csv file:</br>
@@ -60,4 +60,3 @@ records</br>
 tr.org.liderahenk.example.registration.cfg:</br></br>
 **file.protocol**:local</br>
 **file.path**:/home/lider/records</br>
-
