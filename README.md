@@ -22,13 +22,11 @@ Example Registration bundle implemented for Ahenk registration according to host
 **file.protocol**: Possible values are http(read remote csv file via http), local(read csv file which is on Lider machine), inner(read csv file which is embedded in bundle)
 **file.path** : If protocol was defined as http, path value must be valid url. If protocol is local, path value must be folder path whic contains csv files. ( This folder can be host inner folders. Bundle looks folders recursively)</br></br>
 3-Example csv file:</br>
-`
-<hostname>,<cn>,<ou>,<ou>,<ou>,<ou>,...
-hostname-1,ahenk-1,Ankara,Tübitak,Ulakbim,liderahenk
-hostname-2,ahenk-2,Ankara,Tübitak,Ulakbim,liderahenk
-hostname-3,ahenk-3,Ankara,Tübitak,Ulakbim,liderahenk
-hostname-4,ahenk-4,Ankara,Tübitak,Ulakbim,liderahenk
-`
+`<hostname>,<cn>,<ou>,<ou>,<ou>,<ou>,...`</br>
+hostname-1,ahenk-1,Ankara,Tübitak,Ulakbim,liderahenk</br>
+hostname-2,ahenk-2,Ankara,Tübitak,Ulakbim,liderahenk</br>
+hostname-3,ahenk-3,Ankara,Tübitak,Ulakbim,liderahenk</br>
+hostname-4,ahenk-4,Ankara,Tübitak,Ulakbim,liderahenk</br>
 </br></br>
 Be careful about cn and hostname values must be uniqe and ou values are ordered
 You don't have to create file with csv extension but file must has this format
