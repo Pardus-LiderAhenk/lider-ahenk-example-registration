@@ -29,6 +29,7 @@
 		<property name="entityFactory" ref="entityFactory" />
 		<property name="messageFactory" ref="messageFactory" />
 		<property name="registrationConfig" ref="registrationConfig" />
+		<property name="registrationDao" ref="registrationDao" />
 	</bean>
 	
 	<bean id="registrationConfig" class="tr.org.liderahenk.registration.config.RegistrationConfig"
@@ -43,6 +44,9 @@
 		interface="tr.org.liderahenk.lider.core.api.configuration.IConfigurationService" />
 	<reference id="agentDao"
 		interface="tr.org.liderahenk.lider.core.api.persistence.dao.IAgentDao" />
+		
+	<reference id="registrationDao"
+		interface="tr.org.liderahenk.lider.core.api.persistence.dao.IRegistrationDao" />
 	<reference id="entityFactory"
 		interface="tr.org.liderahenk.lider.core.api.persistence.factories.IEntityFactory" />
 	<reference id="messageFactory"
