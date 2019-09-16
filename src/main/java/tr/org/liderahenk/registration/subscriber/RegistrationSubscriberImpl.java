@@ -249,10 +249,12 @@ public class RegistrationSubscriberImpl implements IRegistrationSubscriber, IScr
 				for (LdapEntry ldapEntry : userAuthDomainGroupList) {
 
 					String hosts = ldapEntry.get("sudoHost");
-					if (hosts != null && hosts.contains(jid)) {
+					
+					if (hosts != null && (hosts.contains("ALL") || hosts.contains(jid))) {
 						isHostExist = true;
 						userRoleLdap = ldapEntry;
 					}
+					
 				}
 
 				if (userAuthDomainGroupList == null || userAuthDomainGroupList.size() == 0 || isHostExist == false) {
